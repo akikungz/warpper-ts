@@ -53,7 +53,7 @@ const divide = (a: number, b: number) => {
   return a / b;
 };
 
-const [error, result] = await warpper(divide, 10, 2);
+const [error, result] = await warpper(divide, [10, 2]);
 if (error) {
   console.error('Division failed:', error.message);
 } else {
@@ -81,12 +81,12 @@ import { warpper } from '@akikungz/warpper-ts';
 import fs from 'fs/promises';
 
 async function readConfigFile(filename: string) {
-  const [readError, content] = await warpper(fs.readFile, filename, 'utf8');
+  const [readError, content] = await warpper(fs.readFile, [filename, 'utf8']);
   if (readError) {
     return [readError, null];
   }
 
-  const [parseError, config] = await warpper(JSON.parse, content);
+  const [parseError, config] = await warpper(JSON.parse, [content]);
   if (parseError) {
     return [new Error(`Invalid JSON in ${filename}: ${parseError.message}`), null];
   }
