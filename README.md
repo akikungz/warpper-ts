@@ -125,22 +125,24 @@ class CustomError extends Error {
   }
 }
 
-const [error, result] = await warpper<CustomError>(() => {
+const throwCustomError = () => {
   throw new CustomError('Custom error', 404);
-});
+};
+
+const [error, result] = await warpper<typeof throwCustomError, CustomError>(throwCustomError);
 // error is typed as CustomError | null
 ```
 
 ## API Reference
 
-### `warpper<TError, TFunction, TResult>(callback, ...args)`
+### `warpper<TFunction, TError, TResult>(callback, args?)`
 
 Executes a callback function and returns a promise that resolves with a tuple containing an error (if any) and the result.
 
 #### Parameters
 
 - `callback: TFunction` - The function to execute
-- `...args: Parameters<TFunction>` - Arguments to pass to the callback function
+- `args?: Parameters<TFunction>` - Optional array of arguments to pass to the callback function
 
 #### Returns
 
@@ -150,9 +152,9 @@ Executes a callback function and returns a promise that resolves with a tuple co
 
 #### Type Parameters
 
-- `TError extends Error = Error` - The expected error type
-- `TFunction extends CallbackFunction = CallbackFunction` - The callback function type
-- `TResult` - The return type (automatically inferred)
+- `TFunction extends (...args: any[]) => any` - The callback function type
+- `TError extends Error = Error` - The expected error type (defaults to Error)
+- `TResult` - The return type (automatically inferred from TFunction)
 
 ## GitHub Actions Setup
 
