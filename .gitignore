@@ -1,0 +1,16 @@
+# Node.js
+node_modules/
+npm-debug.log*
+.DS_Store
+.env
+/.vscode
+/dist
+/build
+/coverage
+*.log
+*.tgz
+*.zip
+*.rar
+pids
+logs
+results

@@ -1,0 +1,95 @@
+name: Version and Release
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - ".github/**"
+
+jobs:
+  version-and-release:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build package
+        run: npm run build
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check for changes requiring version bump
+        id: check-changes
+        run: |
+          # Check if this is a version bump commit
+          if git log -1 --pretty=%B | grep -q "^[0-9]\+\.[0-9]\+\.[0-9]\+"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "This is a version bump commit, skipping..."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine version bump type
+        if: steps.check-changes.outputs.skip == 'false'
+        id: version-type
+        run: |
+          # Check commit messages for conventional commits
+          if git log --format=%B -n 1 | grep -q "^feat\|^BREAKING CHANGE\|^feat!"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif git log --format=%B -n 1 | grep -q "^fix"; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version
+        if: steps.check-changes.outputs.skip == 'false'
+        id: version
+        run: |
+          VERSION_TYPE=${{ steps.version-type.outputs.type }}
+          NEW_VERSION=$(npm version $VERSION_TYPE --no-git-tag-version)
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Commit version bump
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          git add package.json
+          git commit -m "${{ steps.version.outputs.new-version }} [skip ci]"
+          git push
+
+      - name: Create Release
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.new-version }}
+          release_name: Release ${{ steps.version.outputs.new-version }}
+          body: |
+            Changes in this Release:
+            - Auto-generated release for version ${{ steps.version.outputs.new-version }}
+          draft: false
+          prerelease: false
