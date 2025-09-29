@@ -1,0 +1,43 @@
+{
+  "name": "@akikungz/warpper-ts",
+  "version": "1.0.1",
+  "description": "A TypeScript wrapper utility",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "typescript",
+    "wrapper",
+    "utility"
+  ],
+  "author": "akikungz",
+  "license": "ISC",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akikungz/warpper-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/akikungz/warpper-ts/issues"
+  },
+  "homepage": "https://github.com/akikungz/warpper-ts#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.5.2",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.4",
+    "typescript": "^5.9.2"
+  }
+}
